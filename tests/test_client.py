@@ -18,7 +18,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from ainative_openai import API_BASE, AsyncOpenAI, OpenAI, __version__, provision
-from ainative_openai.client import _resolve_key
+from ainative_openai.client import _resolve_key, _SDK_VERSION
 from ainative_openai.provision import (
     CONFIG_FILE,
     INSTANT_DB_URL,
@@ -124,6 +124,24 @@ class TestOpenAIClient:
     def test_passes_kwargs_to_parent(self):
         client = OpenAI(api_key="k", timeout=60.0)
         assert client.timeout == 60.0
+
+    def test_sdk_header_set(self):
+        client = OpenAI(api_key="k")
+        assert client._custom_headers.get("X-SDK") == f"ainative-openai-python/{_SDK_VERSION}"
+
+    def test_custom_headers_preserved(self):
+        client = OpenAI(api_key="k", default_headers={"X-Custom": "val"})
+        assert client._custom_headers.get("X-Custom") == "val"
+        assert client._custom_headers.get("X-SDK") == f"ainative-openai-python/{_SDK_VERSION}"
+
+    def test_has_chat_completions(self):
+        client = OpenAI(api_key="k")
+        assert hasattr(client, "chat")
+        assert hasattr(client.chat, "completions")
+
+    def test_has_embeddings(self):
+        client = OpenAI(api_key="k")
+        assert hasattr(client, "embeddings")
 
 
 # ---------------------------------------------------------------------------

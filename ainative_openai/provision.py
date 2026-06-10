@@ -41,6 +41,11 @@ def _save_config(data: dict) -> None:
             json.dumps(data, indent=2) + "\n",
             encoding="utf-8",
         )
+        # Restrict permissions -- config contains API keys
+        try:
+            CONFIG_FILE.chmod(0o600)
+        except OSError:
+            pass
     except OSError as exc:
         logger.warning("Could not save config to %s: %s", CONFIG_FILE, exc)
 

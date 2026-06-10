@@ -24,6 +24,7 @@ from openai import OpenAI as _OpenAI
 from ainative_openai.provision import load_saved_key, provision
 
 API_BASE = "https://api.ainative.studio/api/v1"
+_SDK_VERSION = "0.1.0"
 
 
 def _resolve_key(api_key: Optional[str]) -> str:
@@ -69,7 +70,14 @@ class OpenAI(_OpenAI):
     ):
         key = _resolve_key(api_key)
         url = base_url or os.environ.get("AINATIVE_BASE_URL", API_BASE)
-        super().__init__(api_key=key, base_url=url, **kwargs)
+
+        # Inject SDK identification header for telemetry
+        default_headers = kwargs.pop("default_headers", {})
+        default_headers.setdefault("X-SDK", f"ainative-openai-python/{_SDK_VERSION}")
+
+        super().__init__(
+            api_key=key, base_url=url, default_headers=default_headers, **kwargs
+        )
 
 
 class AsyncOpenAI(_AsyncOpenAI):
@@ -88,4 +96,10 @@ class AsyncOpenAI(_AsyncOpenAI):
     ):
         key = _resolve_key(api_key)
         url = base_url or os.environ.get("AINATIVE_BASE_URL", API_BASE)
-        super().__init__(api_key=key, base_url=url, **kwargs)
+
+        default_headers = kwargs.pop("default_headers", {})
+        default_headers.setdefault("X-SDK", f"ainative-openai-python/{_SDK_VERSION}")
+
+        super().__init__(
+            api_key=key, base_url=url, default_headers=default_headers, **kwargs
+        )
